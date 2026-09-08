@@ -1,0 +1,32 @@
+# ---- Python ----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# ---- Jupyter ---------------------------------------------------------------
+.ipynb_checkpoints/
+# Note: notebook OUTPUTS are deliberately committed so the analysis renders on
+# GitHub without being run. If diffs become unmanageable, install nbstripout.
+
+# ---- Data caches (real-data notebook) ---------------------------------------
+# Raw downloads are reproducible from the notebook; keep the repo light.
+data/
+*.parquet
+*.h5
+*.pkl
+
+# ---- Regression / scratch artefacts ----------------------------------------
+baseline*.txt
+_pg/
+_t/
+*.tmp
+
+# ---- OS / editor -----------------------------------------------------------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,18 @@
+# evt_lab.py needs numpy and scipy (GEV/GPD densities, optimisation, special
+# functions). The Taleb-school diagnostics — kappa, max-to-sum, MAD/STD, shadow
+# moments — are pure numpy; scipy is confined to the fitting layer.
+numpy>=1.24
+scipy>=1.11
+
+# Additionally required to run narrative_evt_simulations.ipynb.
+pandas>=2.0
+matplotlib>=3.7
+jinja2>=3.1.2          # pandas Styler backend for the tables
+jupyter>=1.0
+
+# Required to run narrative_evt_market_data.ipynb.
+yfinance>=0.2
+pyarrow>=14
+
+# Development only: the test suite (pytest tests/ -q).
+pytest>=7.0
