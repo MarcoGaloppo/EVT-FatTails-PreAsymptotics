@@ -1,6 +1,6 @@
 # Surviving the tail — an extreme-value laboratory that would rather not go bust
 
-[![tests](https://github.com/MarcoGaloppo/EVT-FatTails-PreAsymptotics/actions/workflows/ci.yml/badge.svg)](https://github.com/MarcoGaloppo/EVT-FatTails-PreAsymptotics/actions/workflows/ci.yml)
+[![tests](https://github.com/MarcoGaloppo/EVT-FatTails-PreAsymptotics/actions/workflows/ci.yml/badge.svg)](https://github.com/MarcoGaloppo/EVT-FatTails-PreAsymptotics/actions/workflows/ci.yml)[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 In our previous project, [Quant-RMT-FatTails](https://github.com/MarcoGaloppo/Quant-RMT-FatTails), we built 
 the whole RMT apparatus and, on S&P data, cleaned SCM five different ways and scored them out of sample. 
