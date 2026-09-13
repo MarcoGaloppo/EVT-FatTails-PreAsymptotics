@@ -161,9 +161,9 @@ Kupiec, Christoffersen and Acerbi–Székely. **Does covariance cleaning reduce 
 **Part 6** is the endgame. We take the variance winner and the tail winner and size them five ways — 
 fixed leverage, volatility targeting, ES targeting, barbell, α-haircut fractional Kelly — then we score
 on compound growth (the time average, not the ensemble one), maximum drawdown, ruin frequency and ES, through 
-2008, 2020 and 2022.
+2008, 2020 and 2022. We also look at the full market.
 
-**Part 7** closing statements, and what comes next.
+**Part 7** closing statements.
 
 ## Running it
 
