@@ -1,17 +1,17 @@
 # Surviving the tail — an extreme-value laboratory that would rather not go bust
 
-[![tests](https://github.com/MarcoGaloppo/EVT-FatTails-PreAsymptotics/actions/workflows/ci.yml/badge.svg)](https://github.com/MarcoGaloppo/EVT-FatTails-PreAsymptotics/actions/workflows/ci.yml)[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![tests](https://github.com/MarcoGaloppo/EVT-FatTails-PreAsymptotics/actions/workflows/ci.yml/badge.svg)](https://github.com/MarcoGaloppo/EVT-FatTails-PreAsymptotics/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 In our previous project, [Quant-RMT-FatTails](https://github.com/MarcoGaloppo/Quant-RMT-FatTails), we built 
 the whole RMT apparatus and, on S&P data, cleaned SCM five different ways and scored them out of sample. 
 We found that RIE won. Then we re-scored the very same P&L streams on the *tail* instead of on the variance.
-This simple change destroyed the ranking. Indeed, we saw that whilst RIE won on volatility, it was Ledoit-Wolf
+This simple change destroyed the ranking. Indeed, we saw that whilst RIE won on volatility, it was Ledoit–Wolf
 who won on expected shortfall (ES), and finally clipping turned up as the winner with respect to maximum drawdown. 
 Additionally, RIE had the *worst* ES-to-volatility ratio of the lot. To wit, the harder one squeezes the second moment 
 the more of what remains gets concentrated into the tail. This can be a problem. 
 
 Those results were simply a *measurement* problem. Indeed, [Quant-RMT-FatTails](https://github.com/MarcoGaloppo/Quant-RMT-FatTails) 
-was built around RMT and SCM. As such, every score effectively probed the second moment of a distribution. This, however, in a 
+was built around RMT and SCM. As such, every score effectively probed the second moment of a distribution. And this in a 
 market where the max-to-sum ratio of the alleged fourth-moment, $R_4$, never converges and one day owns 12% of the fourth-moment sum.
 
 Hence this lab. We want to measure the tail properly, discover how badly that measurement can be done, and then act anyway. 
@@ -26,7 +26,7 @@ In one line: **we learned how to see structure, we now want to learn how to surv
   peaks-over-threshold with the GPD), the tail-index estimators and their sampling distributions
   (Hill, Pickands, DEdH, the Pareto MLE, and the log-log regression), shadow moments for what the sample 
   never contained, six ways of computing VaR and ES, the extremal-index machinery for the fact 
-  that extremes arrive in clusters, the urvival layer (growth-optimal sizing, barbells, ES targeting, 
+  that extremes arrive in clusters, the survival layer (growth-optimal sizing, barbells, ES targeting, 
   absorbing barriers, ruin), and the necessary backtests, and finally the covariance cleaners carried 
   over from the previous lab. numpy plus scipy, and nothing else.
 - `narrative_evt_simulations.ipynb` — This is our laboratory. Synthetic data only, where α, ES and the
@@ -43,7 +43,7 @@ In one line: **we learned how to see structure, we now want to learn how to surv
 
 ## Simulation notebook
 
-**Part 0** is the opening gambit, mirrors the RMT simulation lab's SCM lie. There, the in-sample volatility
+**Part 0** is the opening gambit, and mirrors the RMT simulation lab's SCM lie. There, the in-sample volatility
 understated the truth. Here, the *empirical* expected shortfall understates the true ES in a clear majority 
 of samples. Note that it cannot do otherwise: historical ES is bounded above by the worst thing that has
 already happened, so it assigns probability zero to everything worse.
@@ -60,17 +60,17 @@ sample size.
 **Part 3** is EVT proper, route one: block maxima, Fisher–Tippett–Gnedenko, the three domains of
 attraction. We show that, of course, the Gaussian *is* in the Gumbel domain but it gets there at 
 rate `1/ln n`. To wit, the slowest useful rate in statistics. At n = 1000 the normalised maximum 
-is still visibly not Gumbel. Power laws converge to Fréchet fast. **EVT's own asymptotics are sharpest                                               exactly where the tool is needed and worst where it is not**.
+is still visibly not Gumbel. Power laws converge to Fréchet fast. **EVT's own asymptotics are sharpest exactly where the tool is needed and worst where it is not**.
 
 **Part 4** is route two: peaks over threshold, Pickands–Balkema–de Haan, the GPD. Here, we look at 
 mean-excess plots, the modified scale, threshold selection as a bias–variance dial with no objective setting. 
-We alos take a swing at Hill plots. 
+We also take a swing at Hill plots. 
 
 **Part 5** is where we admit we do not know α. The Pareto MLE's sampling distribution is
 inverse-gamma in closed form, so the bias is computable. In particular, we have `E[α̂] = α n/(n−1)`, 
 and therefore the sampling is biased toward reporting a *thinner* tail than the truth. This problem
 compounds. Indeed, the elasticity `d ln ES / d ln α` is −2.05, so a 10% error in α is a 20% error in ES.
-We also look at reporting interval of estimation of the tail exponent (i.e., Wald and likelyhood intervals).
+We also look at reporting intervals for the tail exponent (i.e., Wald and likelihood intervals).
 
 **Part 6** is the hidden tail. How much of the true mean lives beyond the largest observation you
 will ever see in n draws? Closed form, and the answer is `M^(1−α)` at `M = E[max]`: at n = 10,000
@@ -84,7 +84,7 @@ is done across four data-generating processes, scored by Kupiec, Christoffersen 
 "How often was it wrong" and "how wrong was it" turn out to be different questions with different answers.
 
 **Part 8** is survival, and the checklist the market notebook executes. Three streams with *identical*
-mean and standard deviation, differing only in shape, abd put through the sizing rule that can only see
+mean and standard deviation, differing only in shape, and put through the sizing rule that can only see
 mean and standard deviation. Absorbing barriers, ruin against growth, and the time average an actual
 trajectory earns versus the ensemble average.
 
@@ -111,7 +111,7 @@ trajectory earns versus the ensemble average.
    question; "over what range, and do I have data there?" is the right one.
 6. **EVT's own asymptotics are slow where the tail is thin.** Fitted ξ for the normalised Gaussian
    maximum is linear in 1/ln n with R² = 0.97, and still −0.023 at n = 10⁶. With blocks of 250 days
-   the Gaussian reads as *Weibull* which is false. A Pareto is at its limit by n = 100.
+   the Gaussian reads as *Weibull*, which is false. A Pareto is at its limit by n = 100.
 7. **With eighty years of daily data, best practice gives you anything.** Fitting a GPD at the 99.5th
    percentile of 20,000 t(3) draws, the middle half of 200 independent draws lands between α̂ = 2.68
    and 5.0, with 39% coming out above 4 and 19% below 2.5. The *median* is fine (3.32–3.40). 
@@ -124,7 +124,7 @@ trajectory earns versus the ensemble average.
 10. **No risk estimator sweeps the shoot-out.** Student-t wins on |Z₂| where one global shape fits
     (t(3), GARCH) and POT-GPD wins where the tail is a different animal from the body (the regime
     mixture). POT is the robust default *because* it assumes least, and pays for that in variance.
-11. **Fat tails do not bleed to death a portfolio faster — they kill it instantly.** At matched μ and
+11. **Fat tails do not bleed a portfolio to death faster — they kill it instantly.** At matched μ and
     σ, the ruin probability of Gaussian, t(3) and GARCH streams is identical to three digits (0.477,
     0.471, 0.472 at 3×). However, the leverage at which *one day* ends you is 21.7× for the Gaussian 
     and **5.2× for the t(3)**.
@@ -150,8 +150,8 @@ respect dependence.
 declustering, and the effective sample size that follows. Here, we have a direct continuity with 
 the previous lab: day-standardising halved `R₄` and no more — does it change α?
 
-**Part 4** asks where fat-tailedness lives on the panel, given that the conditional shocks are fat
-Thus, **which directions are the fat ones, and does any standard construction avoid them?** 
+**Part 4** asks where fat-tailedness lives on the panel, given that the conditional shocks are fat.
+Thus, **which directions are the fat ones, and does any standard construction avoid them?**
 
 **Part 5** rebuilds the five cleaned portfolios of the previous lab, re-scored on the tail: GPD
 fits, tail α, ES₉₉ three ways, ES/σ, drawdown, and each estimator's own risk forecast put through
@@ -162,23 +162,24 @@ fixed leverage, volatility targeting, ES targeting, barbell, α-haircut fraction
 on compound growth (the time average, not the ensemble one), maximum drawdown, ruin frequency and ES, through 
 2008, 2020 and 2022. We also look at the full market.
 
-**Part 7** closing statements.
+**Part 7** draws the conclusions: what we can say, what we cannot, and what the industry already
+does about it.
 
 ## Headline results of the market laboratory
 
 1. **Not one of 216 S&P names is thin.** Every single one is fat-tailed, and pooling them does not help.
-   Indeed, we find that *Averaging five hundred stocks leaves α exactly where it was* and makes κ worse 
+   Indeed, we find that *averaging two hundred stocks leaves α exactly where it was* and makes κ worse 
    by two thirds relative to the median stock.
 2. **κ measured on your own data is only ever a floor.** The bootstrap resamples days that happened, so
    it cannot see the days that did not. The 16-year window gives κ(1,30) = 0.181. But the same index over 98
    years gives 0.214. 
 3. **The cross-section knows something the time series does not.** If we divide each day by the *cross-sectional*
-   dispersion of that day's 199 returns, and the median name's α moves 3.05 → 3.94, its R₄ 0.201 → 0.146, its
+   dispersion of that day's 199 returns, the median name's α moves 3.05 → 3.94, its R₄ 0.201 → 0.146, its
    MAD/STD 0.685 → 0.746. Names with no fourth moment fall from 198/199 to 105/199.
 4. **The 1987 test, and the flexible method loses.** Let us say one fits the 2010– window, extrapolate a factor
    of two past its own worst day, and predict how often a −22.9% day arrives. Hill (k=100) on 16 years says every 
-   144 years, 1.46× the observed 1-in-98. GEV on annual maxima says 79 years, i.e., 0.81×. However, if we look at
-   *POT-GPD, thus says 344 to 741 years, i.e., wrong by 3.5× to 7.5×*, because the extra shape parameter spends 
+   144 years, 1.46× the observed 1-in-98. GEV on annual maxima says 79 years, i.e., 0.81×. However, POT-GPD
+   says 344 to 741 years, *wrong by 3.5× to 7.5×*, because the extra shape parameter spends 
    itself describing the shoulders.
 5. **The interval on ξ is honest and the interval on α is a joke.** The raw GPD fit gives ξ = 0.172 with a
    profile interval of [0.042, 0.344]. Invert it: **α ∈ [2.90, 23.95]**. The same data are consistent with 
@@ -201,8 +202,8 @@ on compound growth (the time average, not the ensemble one), maximum drawdown, r
     Diversification fails not just because the marginals are fat but because the extremes arrive *together*.
 11. **Covariance cleaning reduces variance and makes the tail worse.** The previous lab reproduced to the
     third decimal (RIE 0.1213 against 0.121, sample 0.1345 against 0.135). But ES₉₉/σ *rises* 3.91 → 4.27
-    as cleaning gets more aggressive, α falls 2.87 → 2.20, and ξ rises 0.329 → 0.459. *The volatility                                              ranking and the tail ranking are close to inverted across all six portfolios.*
-12. **The 99% VaR breaks out of sample, and it is SCM's fault, not the thin tailed assumption.** A Gaussian VaR₉₉ 
+    as cleaning gets more aggressive, α falls 2.87 → 2.20, and ξ rises 0.329 → 0.459. *The volatility ranking                                         and the tail ranking are close to inverted across all six portfolios.*
+12. **The 99% VaR breaks out of sample, and it is SCM's fault, not the thin-tailed assumption.** A Gaussian VaR₉₉ 
     on the believed variance breaches at 1.9–9.1% against a 1% target. Hand it the realised variance — a
     counterfactual, not a forecast — and that falls to 1.20–1.58%. What is left over is a genuine shape
     failure of a different size: even with the variance exactly right the Gaussian under-promises the
@@ -212,7 +213,7 @@ on compound growth (the time average, not the ensemble one), maximum drawdown, r
 13. **Position size is an exponent, not a multiplier.** Pr(ruin) ∝ f^α, fitted rather than assumed: slopes
     of log Pr against log f come out at 2.20–3.13 against Hill estimates of 2.20–3.09. At f = 5 the chance
     of a single day wiping you out is 3.9×10⁻⁵ under the GPD and *3.1×10⁻¹⁵¹ under a Gaussian of identical σ*. 
-    Same variance, incomparable consequence. and the size decision moves maximum drawdown about *seven times more* 
+    Same variance, incomparable consequence. And the size decision moves maximum drawdown about *seven times more* 
     than the choice among all six covariance estimators does.
 14. **Ninety-eight years: every rule that let an estimate pick a large number was destroyed.** Kelly,
     empirical Kelly and *half* Kelly were all pinned at their ceiling on 19 October 1987 — any leverage
