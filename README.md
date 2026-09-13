@@ -150,9 +150,8 @@ respect dependence.
 declustering, and the effective sample size that follows. Here, we have a direct continuity with 
 the previous lab: day-standardising halved `R₄` and no more — does it change α?
 
-**Part 4** goes cross-sectional. We derive α per name with honest intervals, the market factor's α 
-against the idiosyncratic α, upper and lower tail dependence. We alos ask the question: does an N-name 
-portfolio have a thinner tail than its components? 
+**Part 4** asks where fat-tailedness lives on the panel, given that the conditional shocks are fat
+Thus, **which directions are the fat ones, and does any standard construction avoid them?** 
 
 **Part 5** rebuilds the five cleaned portfolios of the previous lab, re-scored on the tail: GPD
 fits, tail α, ES₉₉ three ways, ES/σ, drawdown, and each estimator's own risk forecast put through
@@ -164,6 +163,67 @@ on compound growth (the time average, not the ensemble one), maximum drawdown, r
 2008, 2020 and 2022. We also look at the full market.
 
 **Part 7** closing statements.
+
+## Headline results of the market laboratory
+
+1. **Not one of 216 S&P names is thin.** Every single one is fat-tailed, and pooling them does not help.
+   Indeed, we find that *Averaging five hundred stocks leaves α exactly where it was* and makes κ worse 
+   by two thirds relative to the median stock.
+2. **κ measured on your own data is only ever a floor.** The bootstrap resamples days that happened, so
+   it cannot see the days that did not. The 16-year window gives κ(1,30) = 0.181. But the same index over 98
+   years gives 0.214. 
+3. **The cross-section knows something the time series does not.** If we divide each day by the *cross-sectional*
+   dispersion of that day's 199 returns, and the median name's α moves 3.05 → 3.94, its R₄ 0.201 → 0.146, its
+   MAD/STD 0.685 → 0.746. Names with no fourth moment fall from 198/199 to 105/199.
+4. **The 1987 test, and the flexible method loses.** Let us say one fits the 2010– window, extrapolate a factor
+   of two past its own worst day, and predict how often a −22.9% day arrives. Hill (k=100) on 16 years says every 
+   144 years, 1.46× the observed 1-in-98. GEV on annual maxima says 79 years, i.e., 0.81×. However, if we look at
+   *POT-GPD, thus says 344 to 741 years, i.e., wrong by 3.5× to 7.5×*, because the extra shape parameter spends 
+   itself describing the shoulders.
+5. **The interval on ξ is honest and the interval on α is a joke.** The raw GPD fit gives ξ = 0.172 with a
+   profile interval of [0.042, 0.344]. Invert it: **α ∈ [2.90, 23.95]**. The same data are consistent with 
+   "no fourth moment" and with "Gaussian for every practical purpose".
+6. **Extremes arrive in convoys.** The extremal index at the 99th percentile is θ = 0.181, so the 247
+   exceedances up there are worth about **45 independent ones**. 1929–33, 1987 and 2008 are not 247 pieces
+   of evidence about the tail. They are only a few dozen episodes.
+7. **Volatility filtering removes the clustering and does not remove the fat.** EWMA filtering takes θ easily
+   close to 1 — i.e., clusters of five and a half days become extremes arriving one at a time — and the
+   residual α is 3.70. Across λ ∈ {0.90, 0.94, 0.97, 0.99} and windows of 22, 66 and 252 days it stays in
+   [3.51, 3.72]. *The fourth moment does not exist even after conditioning on volatility.*
+8. **Kesten cannot settle it, but direct measurement can.** A GARCH with perfectly thin shocks can reach the
+   observed α, so the theorem alone excludes nothing. Filter to θ = 0.994 — clustering gone as completely as
+   the data permit — and the residuals still have κ = 0.084 and α = 3.72. That is a measurement of the
+   conditional law, not an inference from an assumed one.
+9. **Idiosyncratic risk is exactly as fat as everything else.** Market component α = 3.05, residual α = 3.01,
+   with 66% of a typical name's variance idiosyncratic. There is no thin half to diversify into.
+10. **Dependence does essentially all the work.** Keep every marginal exactly as it is and shuffle the
+    dependence away, and the equal-weight portfolio's α goes **2.34 → 7.46** with a near-Gaussian shape.
+    Diversification fails not just because the marginals are fat but because the extremes arrive *together*.
+11. **Covariance cleaning reduces variance and makes the tail worse.** The previous lab reproduced to the
+    third decimal (RIE 0.1213 against 0.121, sample 0.1345 against 0.135). But ES₉₉/σ *rises* 3.91 → 4.27
+    as cleaning gets more aggressive, α falls 2.87 → 2.20, and ξ rises 0.329 → 0.459. *The volatility                                              ranking and the tail ranking are close to inverted across all six portfolios.*
+12. **The 99% VaR breaks out of sample, and it is SCM's fault, not the thin tailed assumption.** A Gaussian VaR₉₉ 
+    on the believed variance breaches at 1.9–9.1% against a 1% target. Hand it the realised variance — a
+    counterfactual, not a forecast — and that falls to 1.20–1.58%. What is left over is a genuine shape
+    failure of a different size: even with the variance exactly right the Gaussian under-promises the
+    shortfall by *34–48%*, and its observed-to-promised exception ratio runs 1.29 at p = 1%, 1.89 at
+    0.5% and *5.35 at 0.1%*. A standardised t(3) can close the gap, and closes it best for the portfolio
+    whose measured α is nearest 3.
+13. **Position size is an exponent, not a multiplier.** Pr(ruin) ∝ f^α, fitted rather than assumed: slopes
+    of log Pr against log f come out at 2.20–3.13 against Hill estimates of 2.20–3.09. At f = 5 the chance
+    of a single day wiping you out is 3.9×10⁻⁵ under the GPD and *3.1×10⁻¹⁵¹ under a Gaussian of identical σ*. 
+    Same variance, incomparable consequence. and the size decision moves maximum drawdown about *seven times more* 
+    than the choice among all six covariance estimators does.
+14. **Ninety-eight years: every rule that let an estimate pick a large number was destroyed.** Kelly,
+    empirical Kelly and *half* Kelly were all pinned at their ceiling on 19 October 1987 — any leverage
+    above 1/0.229 = 4.37 dies on that one day. What lived was bounded — volatility targeting kept 90% of 
+    buy-and-hold's growth for half its drawdown, and the barbell never lost more than 5.7% in a day since 1928.
+15. **α is knowable as a shape and not as a level, which is why the cap cannot live inside the model.**
+    ξ from a rolling 504-day window ranges −0.56 to +0.54 with a *median of 0.057* — i.e., the median two-year
+    window concludes equity losses are essentially exponential. Extrapolating to a ruin-level probability
+    multiplies the threshold by (1/p)^ξ: 3.5 at ξ = 0.10, *145 at ξ = 0.40*. An error of 0.3 in ξ moves
+    the leverage you are permitted by a factor of forty. You cannot compute your way to a safe position
+    size, so you must choose one you can afford to be wrong about.
 
 ## Running it
 
