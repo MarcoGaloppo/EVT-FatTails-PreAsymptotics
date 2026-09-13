@@ -241,6 +241,16 @@ once via `yfinance` into `data/` (gitignored) and runs offline from the cache af
 is worth installing so the cache is parquet rather than a pandas-version-locked pickle. `evt_lab.py`
 itself needs only numpy and scipy.
 
+## On the use of AI
+
+`evt_lab.py` and both notebooks were written with Claude (Anthropic) used as a pair programmer
+over multiple sessions. I chose the questions, the structure, and the standard of evidence whilst 
+employing Claude to write a good part of the implementation and some of the prose.
+
+Every numerical claim in the notebooks is produced by the code in this repository and was checked
+against its output. Several of Claude's results were wrong and were corrected, among them a
+look-ahead bias in the Part 5 variance decomposition for example.
+
 ## Main references
 
 ### Extreme value theory
