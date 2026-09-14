@@ -17,6 +17,11 @@ market where the max-to-sum ratio of the alleged fourth-moment, $R_4$, never con
 Hence this lab. We want to measure the tail properly, discover how badly that measurement can be done, and then act anyway. 
 In one line: **we learned how to see structure, we now want to learn how to survive it.**
 
+This is particularly important because, whilst most people look at themselves like the special case and argue "that will not happen to me", 
+we should always keep in mind the words of *Publilius Syrus* as reported by the big boss himself *lucio Anneo Seneca*#
+
+### **"Cuivis potest accidere quod cuiquam potest." — "What can happen to someone, it can happen to anyone."**
+
 ## The set-up
 
 - `evt_lab.py` — It is our toolkit, in eleven blocks: generators whose truth we know (Pareto,
