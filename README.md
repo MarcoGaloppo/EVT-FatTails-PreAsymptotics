@@ -251,106 +251,36 @@ itself needs only numpy and scipy.
 
 `evt_lab.py` and both notebooks were written with Claude (Anthropic) used as a pair programmer
 over multiple sessions. I chose the questions, the structure, and the standard of evidence whilst 
-employing Claude to write a good part of the implementation and some of the prose.
+employing Claude to write the majority of the implementation and some of the initial prose.
 
 Every numerical claim in the notebooks is produced by the code in this repository and was checked
 against its output. Several of Claude's results were wrong and were corrected, among them a
 look-ahead bias in the Part 5 variance decomposition for example.
 
-## Main references
-
-### Extreme value theory
+## References
 
 - Fisher & Tippett (1928), Math. Proc. Cambridge Philos. Soc. 24, 180-190 — *Limiting forms of the frequency distribution of the largest or smallest member of a sample*
 - Gnedenko (1943), Ann. Math. 44, 423-453 — *Sur la distribution limite du terme maximum d'une série aléatoire*
 - Balkema & de Haan (1974), Ann. Probab. 2, 792-804 — *Residual life time at great age*
-- Pickands (1975), Ann. Statist. 3, 119-131 — *Statistical inference using extreme order statistics* 
+- Pickands (1975), Ann. Statist. 3, 119-131 — *Statistical inference using extreme order statistics*
 - Hill (1975), Ann. Statist. 3, 1163-1174 — *A simple general approach to inference about the tail of a distribution*
-- Hosking, Wallis, and Wood (1985), Technometrics 27, 251-261 — *Estimation of the generalized extreme-value distribution by the method of probability-weighted moments*
-- Hosking & Wallis (1987), Technometrics 29, 339-349 — *Parameter and quantile estimation for the generalized Pareto distribution* 
-- Smith (1987), Ann. Statist. 15, 1174-1207 — *Estimating tails of probability distributions*
-- Dekkers, Einmahl, and de Haan (1989), Ann. Statist. 17, 1833-1855 — *A moment estimator for the index of an extreme-value distribution*
+- Leadbetter (1983), Z. Wahrscheinlichkeitstheor. Verw. Geb. 65, 291-306 — *Extremes and local dependence in stationary sequences* (the extremal index)
 - Davison & Smith (1990), J. R. Stat. Soc. B 52, 393-442 — *Models for exceedances over high thresholds* (the paper that made POT practical)
-- Embrechts, Klüppelberg, and Mikosch (1997) — *Modelling Extremal Events for Insurance and Finance* (i.e., the review this lab shadows)
-- Coles (2001) — *An Introduction to Statistical Modeling of Extreme Values*
-- de Haan & Ferreira (2006) — *Extreme Value Theory: An Introduction*
-
-### Threshold choice
-
-- Resnick (1997), ASTIN Bulletin 27, 139-151 — *Discussion of the Danish data on large fire insurance losses* (the original Hill horror plots)
-- Drees, de Haan, and Resnick (2000), Ann. Statist. 28, 254-274 — *How to make a Hill plot*
-- Danielsson, de Haan, Peng, and de Vries (2001), J. Multivar. Anal. 76, 226-248 — *Using a bootstrap method to choose the sample fraction in tail index estimation*
-- Huisman, Koedijk, Kool, and Palm (2001), J. Bus. Econ. Statist. 19, 208-216 — *Tail-index estimates in small samples*
-- Goldstein, Morris, and Yen (2004), Eur. Phys. J. B 41, 255-258 — *Problems with fitting to the power-law distribution*
+- Ferro & Segers (2003), J. R. Stat. Soc. B 65, 545-556 — *Inference for clusters of extreme values* (the intervals estimator implemented here)
 - Clauset, Shalizi, and Newman (2009), SIAM Review 51, 661-703 — *Power-law distributions in empirical data* (the standing case against log-log regression)
-
-### The Taleb programme
-
-- Taleb (2025) — *Statistical Consequences of Fat Tails* (Chapters 8, 9, 10, 16, 17 and 30 are this lab's spine)
-- Taleb (2009), Int. J. Forecasting 25, 744-759 — *Errors, robustness, and the fourth quadrant*
-- Taleb (2019), Int. J. Forecasting 35, 677-686 — *How much data do you need? An operational, pre-asymptotic metric for fat-tailedness* 
-- Cirillo & Taleb (2016), Physica A 452, 29-45 — *On the statistical properties and tail risk of violent conflicts*
-- Cirillo & Taleb (2020), Nature Physics 16, 606-613 — *Tail risk of contagious diseases*
-- Geman, Geman, and Taleb (2015), Entropy 17, 3724-3737 — *Tail risk constraints and maximum entropy* 
-- Taleb, Bar-Yam, and Cirillo (2022), Int. J. Forecasting 38, 413-422 — *On single point forecasts for fat-tailed variables*
-
-### Fat tails in financial data
-
-- Mandelbrot (1963), J. Business 36, 394-419 — *The variation of certain speculative prices*
-- Fama (1965), J. Business 38, 34-105 — *The behavior of stock-market prices*
-- Longin (1996), J. Business 69, 383-408 — *The asymptotic distribution of extreme stock market returns*
-- Gopikrishnan, Meyer, Amaral, and Stanley (1998), Eur. Phys. J. B 3, 139-140 — *Inverse cubic law for the distribution of stock price variations*
-- Plerou, Gopikrishnan, Amaral, Meyer, and Stanley (1999), PRE 60, 6519-6529 — *Scaling of the distribution of price fluctuations of individual companies*
 - Cont (2001), Quantitative Finance 1, 223-236 — *Empirical properties of asset returns: stylized facts and statistical issues*
 - Gabaix, Gopikrishnan, Plerou, and Stanley (2003), Nature 423, 267-270 — *A theory of power-law distributions in financial market fluctuations*
-- Bouchaud & Potters (2003) — *Theory of Financial Risk and Derivative Pricing*
-
-### Clustering
-
-- Leadbetter (1983), Z. Wahrscheinlichkeitstheor. Verw. Geb. 65, 291-306 — *Extremes and local dependence in stationary sequences* (the extremal index)
-- Engle (1982), Econometrica 50, 987-1008 — *Autoregressive conditional heteroscedasticity with estimates of the variance of United Kingdom inflation*
-- Bollerslev (1986), J. Econometrics 31, 307-327 — *Generalized autoregressive conditional heteroskedasticity*
-- Kesten (1973), Acta Math. 131, 207-248 — *Random difference equations and renewal theory for products of random matrices*
-- de Haan, Resnick, Rootzén, and de Vries (1989), Stoch. Process. Appl. 32, 213-224 — *Extremal behaviour of solutions to a stochastic difference equation with applications to ARCH processes*
-- Mikosch & Stărică (2000), Ann. Statist. 28, 1427-1451 — *Limit theory for the sample autocorrelations and extremes of a GARCH(1,1) process*
-- Ferro & Segers (2003), J. R. Stat. Soc. B 65, 545-556 — *Inference for clusters of extreme values* (the intervals estimator implemented here)
-- Politis & Romano (1994), JASA 89, 1303-1313 — *The stationary bootstrap*
-
-### Risk measures and their backtests
-
-- Artzner, Delbaen, Eber, and Heath (1999), Math. Finance 9, 203-228 — *Coherent measures of risk* 
-- Acerbi & Tasche (2002), J. Banking Finance 26, 1487-1503 — *On the coherence of expected shortfall*
+- Embrechts, McNeil, and Straumann (2002), in *Risk Management: Value at Risk and Beyond*, CUP, 176-223 — *Correlation and dependence in risk management: properties and pitfalls*
 - Kupiec (1995), J. Derivatives 3, 73-84 — *Techniques for verifying the accuracy of risk measurement models*
 - Christoffersen (1998), Int. Econ. Rev. 39, 841-862 — *Evaluating interval forecasts*
 - McNeil & Frey (2000), J. Empirical Finance 7, 271-300 — *Estimation of tail-related risk measures for heteroscedastic financial time series* (the POT VaR/ES formulas)
-- Gneiting (2011), JASA 106, 746-762 — *Making and evaluating point forecasts* 
-- Acerbi & Székely (2014), Risk 27(11), 76-81 — *Back-testing expected shortfall* 
-- Fissler & Ziegel (2016), Ann. Statist. 44, 1680-1707 — *Higher order elicitability and Osband's principle*
-- Danielsson, James, Valenzuela, and Zer (2016), J. Banking Finance 69, S114-S144 — *Model risk of risk models*
-- Basel Committee on Banking Supervision (2019), BCBS d457 — *Minimum capital requirements for market risk* 
-
-### Dependence in the tail
-
-- Embrechts, McNeil, and Straumann (2002), in *Risk Management: Value at Risk and Beyond*, CUP, 176-223 — *Correlation and dependence in risk management: properties and pitfalls*
-- Longin & Solnik (2001), J. Finance 56, 649-676 — *Extreme correlation of international equity markets*
-- Poon, Rockinger, and Tawn (2004), Rev. Financ. Stud. 17, 581-610 — *Extreme value dependence in financial markets: diagnostics, models, and financial implications*
-- Demarta & McNeil (2005), Int. Stat. Rev. 73, 111-129 — *The t copula and related copulas*
-- Chicheportiche & Bouchaud (2012), IJTAF 15, 1250019 — *The joint distribution of stock returns is not elliptical*
-
-### Growth, ruin, and not being removed from the sample
-
+- Acerbi & Székely (2014), Risk 27(11), 76-81 — *Back-testing expected shortfall*
 - Kelly (1956), Bell Syst. Tech. J. 35, 917-926 — *A new interpretation of information rate*
-- Thorp (1971), in *Proc. Business and Economics Section, ASA*, 215-224 — *Portfolio choice and the Kelly criterion*
-- MacLean, Thorp, and Ziemba, eds. (2011) — *The Kelly Capital Growth Investment Criterion: Theory and Practice*
-- Peters & Klein (2013), PRL 110, 100603 — *Ergodicity breaking in geometric Brownian motion*
 - Peters & Gell-Mann (2016), Chaos 26, 023103 — *Evaluating gambles using dynamics*
-- Peters (2019), Nature Physics 15, 1216-1221 — *The ergodicity problem in economics*
+- Taleb (2019), Int. J. Forecasting 35, 677-686 — *How much data do you need? An operational, pre-asymptotic metric for fat-tailedness* (κ)
+- Embrechts, Klüppelberg, and Mikosch (1997) — *Modelling Extremal Events for Insurance and Finance* (i.e., the review this lab shadows)
+- Taleb (2025) — *Statistical Consequences of Fat Tails* (Chapters 8, 9, 10, 16, 17 and 30 are this lab's spine)
 
-### Carried over from the RMT lab
-
-- Laloux, Cizeau, Bouchaud, and Potters (1999), PRL 83, 1467 — *Noise dressing of financial correlation matrices*
-- Ledoit & Wolf (2004), JMVA 88, 365-411 — *A well-conditioned estimator for large-dimensional covariance matrices*
-- Ledoit & Péché (2011), Probab. Theory Relat. Fields 151, 233-264 — *Eigenvectors of some large sample covariance matrix ensembles*
-- Bun, Bouchaud, and Potters (2017), Phys. Rep. 666, 1-109 — *Cleaning large correlation matrices: tools from RMT*
+The covariance-cleaning references are in the [Quant-RMT-FatTails](https://github.com/MarcoGaloppo/Quant-RMT-FatTails) README.
 
 Author: Marco Galoppo
