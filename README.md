@@ -4,7 +4,7 @@
 
 ## In a nutshell
 
-We ultimately implement a simple sizing rule, i.e., a capped constant levarage, that beats on final wealth Kelly (goes buts), barbell (x 152), and buy-and-hold (x 15000) by delivering a x 30000, on 98 years of the S&P index. We also detect where its advantage comes from in the S&P market and identify in which markets it would underperform with respect to buy-and-hold. Along the way we investigate extreme value theory and fat tails, in particular looking at how hard it is to estimate the tail, the risk it carries, and why volatility measures can fail us at times. 
+We ultimately define and implement a simple sizing rule, i.e., a capped constant levarage, that beats on final wealth Kelly (goes buts), barbell (x 152), and buy-and-hold (x 15000) by delivering a x 30000, on 98 years of the S&P index. We also detect where its advantage comes from in the S&P market and identify in which markets it would underperform with respect to buy-and-hold. Along the way we investigate extreme value theory and fat tails, in particular looking at how hard it is to estimate the tail, the risk it carries, and why volatility measures can fail us at times. 
 
 ## To be more precise
 
