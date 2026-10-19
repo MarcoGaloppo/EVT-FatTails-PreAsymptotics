@@ -124,6 +124,10 @@ __all__ = [
     "leverage_for_es",
     "simulate_wealth",
     "ruin_probability",
+    # real money: cash, financing, costs, and a sizing rule that survives
+    "financed_returns",
+    "absorbed_wealth",
+    "capped_growth_leverage",
     # backtests
     "var_hits",
     "kupiec_pof",
@@ -1600,3 +1604,131 @@ def day_scale(x, robust: bool = True) -> np.ndarray:
         mean = np.mean(x, axis=0, keepdims=True)
         return np.sqrt(np.pi / 2.0) * np.mean(np.abs(x - mean), axis=0, keepdims=True)
     return x.std(axis=0, keepdims=True)
+
+
+# --------------------------------------------------------------------------- #
+# Real money — cash, financing, costs — and a sizing rule that survives
+# --------------------------------------------------------------------------- #
+def financed_returns(f, r, rf, spread: float = 0.01, cost: float = 0.001,
+                     periods: int = 252, f_prev0: float = 0.0,
+                     drift: bool = False) -> np.ndarray:
+    """Per-period return of holding a fraction ``f`` of equity in the risky asset.
+
+    ``rf + f (r - rf) - spread/periods * max(f - 1, 0) - cost * turnover``.
+    Unlevered money earns the bill rate; borrowed money pays the bill rate plus
+    ``spread`` per year; every unit of exposure traded costs ``cost``.
+    ``f_prev0`` is the position held before the first period.
+
+    ``drift=False``: turnover is ``|f_t - f_{t-1}|``, as if the position stayed at its
+    target between trades. ``drift=True``: the position drifts with the market overnight,
+    ``f_{t-1}(1 + r_{t-1}) / (1 + p_{t-1})``, and turnover is the trade back to ``f_t``. Only
+    ``f = 0`` and ``f = 1`` never drift, so this is the cost a levered position pays every day
+    just to stay levered.
+    """
+    f = np.asarray(f, float)
+    r = np.asarray(r, float)
+    rf = np.broadcast_to(np.asarray(rf, float), np.broadcast(f, r).shape)
+    prev = np.concatenate([np.full((1,) + f.shape[1:], f_prev0), f[:-1]], axis=0)
+    if drift:
+        r_prev = np.concatenate([np.zeros((1,) + r.shape[1:]), r[:-1]], axis=0)
+        rf_prev = np.concatenate([np.zeros((1,) + rf.shape[1:]), rf[:-1]], axis=0)
+        gross = 1.0 + rf_prev + prev * (r_prev - rf_prev)
+        drifted = np.where(gross > 0, prev * (1.0 + r_prev) / np.where(gross > 0, gross, 1.0), prev)
+        drifted[0] = prev[0]
+        turnover = np.abs(f - drifted)
+    else:
+        turnover = np.abs(f - prev)
+    return (rf + f * (r - rf) - spread / periods * np.maximum(f - 1.0, 0.0)
+            - cost * turnover)
+
+
+def absorbed_wealth(port_returns, w0: float = 1.0) -> np.ndarray:
+    """Wealth path along axis 0, **absorbed at zero**: a period that loses 100% or
+    more ends the path, and nothing afterwards can revive it."""
+    g = np.maximum(1.0 + np.asarray(port_returns, float), 0.0)
+    return w0 * np.cumprod(g, axis=0)
+
+
+def capped_growth_leverage(r, rf, lam: float = 0.94, kelly_frac: float = 0.5,
+                           prior_years: float = 10.0,
+                           stress_mult: Optional[float] = 2.0,
+                           max_stress_loss: float = 0.5, warmup: int = 252,
+                           band_abs: float = 0.02, band_rel: float = 0.10,
+                           fmax: float = 10.0, periods: int = 252,
+                           target: str = "sharpe", warmup_f: float = 0.0,
+                           fixed_f: float = 1.0) -> np.ndarray:
+    """Leverage path of the *capped growth* rule. ``f[t]`` uses data through t-1.
+
+    1. **Risk**: EWMA variance of excess returns ``x = r - rf`` (RiskMetrics ``lam``).
+    2. **Size**: target volatility ``kelly_frac`` x Sharpe — growth-optimal sizing
+       puts portfolio vol at the Sharpe ratio, so ``kelly_frac = 1/2`` is half Kelly
+       written in vol space. The Sharpe is estimated walk-forward on every past day
+       and shrunk toward **zero** by ``n / (n + prior_years)``: the rule is not told
+       that equities have a premium; it has to see it.
+    3. **Survive**: ``f <= max_stress_loss / (stress_mult x worst loss so far)``. A day
+       ``stress_mult`` times worse than anything on record costs at most
+       ``max_stress_loss`` of equity. The cap is a choice one can afford to be wrong
+       about, not an estimate: it never consults a fitted tail index.
+       ``stress_mult=None`` removes it (the ablation).
+
+    ``target="benchmark"`` (v2) replaces step 2: the target volatility is the asset's own
+    realised RMS volatility of excess returns since inception, walk-forward, so
+    ``f = sigma_benchmark / sigma_EWMA``. No mean is estimated: the rule runs the
+    benchmark's long-run risk budget and only redistributes it over time.
+
+    ``target="fixed"`` (v3) holds a constant ``fixed_f``, still under the survival cap: modest
+    permanent leverage that estimates nothing and trades only when the cap moves.
+
+    Before ``warmup`` the position is ``warmup_f`` (cash for v1, the benchmark ``1.0`` for
+    v2 and v3), never above the cap. Afterwards it moves only when the target differs by more
+    than ``band_abs + band_rel * f_prev``, except that a position above the cap is always
+    cut back at once.
+    """
+    if target not in ("sharpe", "benchmark", "fixed"):
+        raise ValueError(f"unknown target {target!r}")
+    r = np.asarray(r, float)
+    rf = np.asarray(rf, float)
+    one_d = r.ndim == 1
+    if one_d:
+        r, rf = r[:, None], rf[:, None]
+    rf = np.broadcast_to(rf, r.shape)
+    T, P = r.shape
+    x = r - rf
+    # walk-forward Sharpe on days [0, t): prefix sums, shifted by one day
+    c1 = np.vstack([np.zeros((1, P)), np.cumsum(x, axis=0)])
+    c2 = np.vstack([np.zeros((1, P)), np.cumsum(x * x, axis=0)])
+    # worst single-day loss of the risky asset on days [0, t)
+    worst = np.vstack([np.zeros((1, P)), np.maximum.accumulate(-r, axis=0)])
+    def cap_at(t):
+        if stress_mult is None:
+            return np.full(P, fmax)
+        w = worst[t]
+        return np.where(w > 0, max_stress_loss / (stress_mult * np.where(w > 0, w, 1.0)), fmax)
+
+    f = np.zeros((T, P))
+    for t in range(min(warmup, T)):
+        f[t] = np.minimum(warmup_f, cap_at(t))
+    if T <= warmup:
+        return f[:, 0] if one_d else f
+    s2 = np.mean(x[:warmup] ** 2, axis=0)
+    prior_n = prior_years * periods
+    f_prev = f[warmup - 1].copy() if warmup > 0 else np.zeros(P)
+    for t in range(warmup, T):
+        if t > warmup:
+            s2 = lam * s2 + (1.0 - lam) * x[t - 1] ** 2
+        n = float(t)
+        if target == "sharpe":
+            m = c1[t] / n
+            v = np.maximum(c2[t] / n - m * m, 1e-18)
+            sharpe = m / np.sqrt(v) * np.sqrt(periods) * n / (n + prior_n)
+            f_vol = kelly_frac * np.maximum(sharpe, 0.0) / np.sqrt(np.maximum(s2, 1e-18) * periods)
+        elif target == "benchmark":
+            f_vol = np.sqrt(c2[t] / n) / np.sqrt(np.maximum(s2, 1e-18))
+        else:
+            f_vol = np.full(P, float(fixed_f))
+        cap = cap_at(t)
+        tgt = np.clip(np.minimum(f_vol, cap), 0.0, fmax)
+        move = (np.abs(tgt - f_prev) > band_abs + band_rel * f_prev) | (f_prev > cap)
+        f_prev = np.where(move, tgt, f_prev)
+        f[t] = f_prev
+    return f[:, 0] if one_d else f
