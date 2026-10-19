@@ -2,6 +2,12 @@
 
 [![tests](https://github.com/MarcoGaloppo/EVT-FatTails-PreAsymptotics/actions/workflows/ci.yml/badge.svg)](https://github.com/MarcoGaloppo/EVT-FatTails-PreAsymptotics/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
+## In a nutshell
+
+We ultimately implement a simple sizing rule, i.e., a capped constant levarage, that beats Kelly, barbell, volotility sizing and buy-and-hold on 98 years of the S&P index. We also detect where its advantage comes from in the S&P market and identify in which markets it would underperform with respect to buy-and-hold. Along the way we investigate extreme value theory and fat tails, in particular looking at how hard it is to estimate the tail, the risk it carries, and why volatility measures can fail us at times. 
+
+## To be more precise
+
 In our previous project, [Quant-RMT-FatTails](https://github.com/MarcoGaloppo/Quant-RMT-FatTails), we built 
 the whole RMT apparatus and, on S&P data, cleaned SCM five different ways and scored them out of sample. 
 We found that RIE won. Then we re-scored the very same P&L streams on the *tail* instead of on the variance.
@@ -24,7 +30,7 @@ we should always keep in mind the words of *Publilius Syrus* as reported by the 
 
 ## The set-up
 
-- `evt_lab.py` — It is our toolkit, in eleven blocks: generators whose truth we know (Pareto,
+- `evt_lab.py` — It is our toolkit, in twelve blocks: generators whose truth we know (Pareto,
   Student-t, stable, GPD/GEV, variance-preserving mixtures, stochastic volatility, GARCH,
   t-copulas), the preasymptotic diagnostics (κ, max-to-sum ratios, kurtosis under aggregation,
   MAD/STD, the *local* tail exponent), both classical EVT routes (block maxima with the GEV,
@@ -32,14 +38,15 @@ we should always keep in mind the words of *Publilius Syrus* as reported by the 
   (Hill, Pickands, DEdH, the Pareto MLE, and the log-log regression), shadow moments for what the sample 
   never contained, six ways of computing VaR and ES, the extremal-index machinery for the fact 
   that extremes arrive in clusters, the survival layer (growth-optimal sizing, barbells, ES targeting, 
-  absorbing barriers, ruin), and the necessary backtests, and finally the covariance cleaners carried 
-  over from the previous lab. numpy plus scipy, and nothing else.
+  absorbing barriers, ruin), and the necessary backtests, then the covariance cleaners carried 
+  over from the previous lab, as well as a real-money layer with the capped sizing rules. numpy
+  plus scipy, and nothing else.
 - `narrative_evt_simulations.ipynb` — This is our laboratory. Synthetic data only, where α, ES and the
   return level are all *set by us*, so every estimator can be scored against a given truth.
 - `narrative_evt_market_data.ipynb` — the market. Same S&P panel and cross-asset futures as the
   RMT lab, plus a long index history for the sample sizes EVT actually needs, and the same five
   cleaned portfolios. This time, however, re-scored on the tail.
-- `tests/test_evt_lab.py` — 71 checks, run by CI on every push. Three kinds this time. Invariants
+- `tests/test_evt_lab.py` — 85 checks, run by CI on every push. Three kinds this time. Invariants
   with exact answers (PWM is exactly `(0, 1)` on the exponential; `β* = β` for GPD data and `β* = 0`
   for Pareto data; the Kupiec and Christoffersen algebra). Seeded statistical checks against the
   theory implemented (Hill recovers α, κ recovers `2 − α`, Student-t exceedances converge to a GPD
@@ -167,8 +174,12 @@ fixed leverage, volatility targeting, ES targeting, barbell, α-haircut fraction
 on compound growth (the time average, not the ensemble one), maximum drawdown, ruin frequency and ES, through 
 2008, 2020 and 2022. We also look at the full market.
 
-**Part 7** draws the conclusions: what we can say, what we cannot, and what the industry already
-does about it.
+**Part 7** now does the accounting right. We consider Shiller dividends, Ken French T-bills, 1%/yr over bills on
+borrowed money, 10 bp per unit traded and daily rebalancing. It introduces as sizing rule the
+**capped constant leverage**. It simply holds 1.5× the index, estimate nothing, and keep a survival cap
+under which a day twice the worst on record costs at most half the equity (e.g., 1.22× after 1987). It is
+raced against all ten rules, checked for consistency and in the modern era, attacked with inserted crashes 
+and a block bootstrap, and run on 21 country ETFs.
 
 ## Headline results of the market laboratory
 
@@ -207,7 +218,7 @@ does about it.
     Diversification fails not just because the marginals are fat but because the extremes arrive *together*.
 11. **Covariance cleaning reduces variance and makes the tail worse.** The previous lab reproduced to the
     third decimal (RIE 0.1213 against 0.121, sample 0.1345 against 0.135). But ES₉₉/σ *rises* 3.91 → 4.27
-    as cleaning gets more aggressive, α falls 2.87 → 2.20, and ξ rises 0.329 → 0.459. *The volatility ranking                                         and the tail ranking are close to inverted across all six portfolios.*
+    as cleaning gets more aggressive, α falls 2.87 → 2.20, and ξ rises 0.329 → 0.459. *The volatility ranking and the tail ranking are close to inverted across all six portfolios.*
 12. **The 99% VaR breaks out of sample, and it is SCM's fault, not the thin-tailed assumption.** A Gaussian VaR₉₉ 
     on the believed variance breaches at 1.9–9.1% against a 1% target. Hand it the realised variance — a
     counterfactual, not a forecast — and that falls to 1.20–1.58%. What is left over is a genuine shape
@@ -230,14 +241,19 @@ does about it.
     multiplies the threshold by (1/p)^ξ: 3.5 at ξ = 0.10, *145 at ξ = 0.40*. An error of 0.3 in ξ moves
     the leverage you are permitted by a factor of forty. You cannot compute your way to a safe position
     size, so you must choose one you can afford to be wrong about.
+16. **On the S&P, the capped leverage rule beats buy-and-hold consistently and tradeably.** It delivers a ×30,167 against ×15,027 after
+   daily rebalancing costs. It stays ahead in both halves of the century, in 76% of all rolling ten-year windows and 83% of those since 1986, 
+   and in 89% of 500 resampled centuries.
+17. **It wins by taking more risk, not by managing it.** Its Sharpe (0.41) is below buy-and-hold's (0.445) and its drawdown reached −95% in the 
+   Depression.
 
 ## Running it
 
     pip install -r requirements.txt
     jupyter lab narrative_evt_simulations.ipynb      # synthetic, seeded, ~2.5 min end to end
-    jupyter lab narrative_evt_market_data.ipynb      # real data, ~30 s once cached
+    jupyter lab narrative_evt_market_data.ipynb      # real data, ~30 s once cached (+ ~1.5 min for Part 8)
 
-    pytest tests/ -q                                 # 71 checks, ~5 s
+    pytest tests/ -q                                 # 85 checks, ~9 s
 
 Most of the simulation notebook's runtime is in two cells: the rolling shoot-out of Part 7 (~55 s)
 and the κ estimates of Part 1 (~35 s). Everything else is seconds.

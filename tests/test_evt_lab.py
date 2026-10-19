@@ -41,6 +41,7 @@ from evt_lab import (
     barbell, leverage_for_es, simulate_wealth, ruin_probability,
     var_hits, kupiec_pof, christoffersen_independence, christoffersen_cc,
     acerbi_szekely_z2,
+    financed_returns, absorbed_wealth, capped_growth_leverage,
     sample_cov, sample_corr, eigh_desc, recompose, mp_edges, xi_clip,
     lw_shrinkage, xi_rie, clean_cov, min_var_weights, day_scale,
 )
@@ -729,3 +730,140 @@ def test_module_exports_are_all_importable():
     import evt_lab
     missing = [n for n in evt_lab.__all__ if not hasattr(evt_lab, n)]
     assert missing == []
+
+
+
+# --------------------------------------------------------------------------- #
+#  12. Real money and the capped growth rule
+# --------------------------------------------------------------------------- #
+def test_financed_returns_reduce_to_cash_and_to_the_index(rng):
+    """f = 0 earns exactly the bill; f = 1 with no costs earns exactly the asset."""
+    r, rf = rng.normal(3e-4, 0.01, 500), np.full(500, 1e-4)
+    assert np.allclose(financed_returns(np.zeros(500), r, rf), rf)
+    assert np.allclose(financed_returns(np.ones(500), r, rf, cost=0.0, f_prev0=1.0), r)
+
+
+def test_financing_is_charged_only_on_borrowed_money():
+    """At zero excess return a 2x position pays the spread on one unit, a 0.5x pays nothing."""
+    rf = np.full(252, 1e-4)
+    half = financed_returns(np.full(252, 0.5), rf, rf, spread=0.01, cost=0.0, f_prev0=0.5)
+    two = financed_returns(np.full(252, 2.0), rf, rf, spread=0.01, cost=0.0, f_prev0=2.0)
+    assert np.allclose(half, rf)
+    assert np.isclose((rf - two).sum(), 0.01)
+
+
+def test_turnover_is_the_only_trading_cost():
+    """A constant position pays to enter once; an oscillating one pays every day."""
+    z = np.zeros(10)
+    const = financed_returns(np.ones(10), z, z, spread=0.0, cost=0.001)
+    flip = financed_returns(np.tile([0.0, 1.0], 5), z, z, spread=0.0, cost=0.001)
+    assert np.isclose(const.sum(), -0.001)
+    assert np.isclose(flip.sum(), -0.001 * 9)
+
+
+def test_absorbed_wealth_stays_dead():
+    w = absorbed_wealth(np.array([0.1, -1.2, 5.0, 0.3]))
+    assert w[1] == 0.0 and w[-1] == 0.0
+
+
+def test_capped_growth_leverage_never_looks_ahead(rng):
+    """Rewriting the future (a crash on day k) cannot change any position up to day k."""
+    r = rng.standard_t(3, 3000) * 0.006 + 4e-4
+    rf = np.full(3000, 1e-4)
+    k = 2000
+    r2 = r.copy()
+    r2[k:] = -0.3
+    f1, f2 = capped_growth_leverage(r, rf), capped_growth_leverage(r2, rf)
+    assert np.array_equal(f1[:k + 1], f2[:k + 1])
+    assert not np.array_equal(f1, f2)
+
+
+def test_capped_growth_leverage_obeys_the_survival_cap(rng):
+    """Every position satisfies f x stress_mult x worst-so-far <= max_stress_loss, so a
+    day twice as bad as any on record costs at most half the equity."""
+    r = rng.standard_t(2.5, 6000) * 0.008 + 5e-4
+    rf = np.full(6000, 5e-5)
+    f = capped_growth_leverage(r, rf, kelly_frac=5.0, prior_years=0.0)   # push it hard
+    worst = np.concatenate([[0.0], np.maximum.accumulate(-r)[:-1]])
+    live = worst > 0
+    assert np.all(f[live] * 2.0 * worst[live] <= 0.5 + 1e-12)
+    loss = -financed_returns(f, -2.0 * worst, rf)          # the stress day, every day
+    assert loss[live].max() <= 0.5 + 0.01
+
+
+def test_capped_growth_leverage_holds_cash_without_a_premium(rng):
+    """No drift and an agnostic prior: the rule should mostly stay out of the market."""
+    r = rng.normal(0.0, 0.01, 5000)
+    f = capped_growth_leverage(r, np.zeros(5000))
+    assert np.all(f[:252] == 0.0)
+    assert f.mean() < 0.2
+
+
+def test_capped_growth_leverage_runs_paths_in_parallel(rng):
+    """The 2-D call is column-by-column identical to the 1-D call."""
+    R = rng.standard_t(4, (1500, 3)) * 0.01 + 3e-4
+    rf = np.full(1500, 1e-4)
+    F = capped_growth_leverage(R, rf[:, None])
+    for j in range(3):
+        assert np.allclose(F[:, j], capped_growth_leverage(R[:, j], rf))
+
+
+def test_benchmark_sizing_never_looks_ahead_and_obeys_the_cap(rng):
+    """v2 inherits both guarantees: no position depends on its own day or later, and
+    every position (warm-up included) respects the survival cap."""
+    r = rng.standard_t(3, 4000) * 0.008 + 3e-4
+    rf = np.full(4000, 1e-4)
+    kw = dict(target="benchmark", warmup_f=1.0)
+    r2 = r.copy(); r2[2500:] = -0.25
+    f1, f2 = capped_growth_leverage(r, rf, **kw), capped_growth_leverage(r2, rf, **kw)
+    assert np.array_equal(f1[:2501], f2[:2501])
+    worst = np.concatenate([[0.0], np.maximum.accumulate(-r)[:-1]])
+    live = worst > 0
+    assert np.all(f1[live] * 2.0 * worst[live] <= 0.5 + 1e-12)
+
+
+def test_benchmark_sizing_is_buy_and_hold_when_volatility_is_constant(rng):
+    """With i.i.d. returns there is no risk to redistribute: v2 sits near f = 1 throughout,
+    and holds the benchmark during warm-up."""
+    r = rng.normal(3e-4, 0.01, 5000)
+    f = capped_growth_leverage(r, np.zeros(5000), target="benchmark", warmup_f=1.0, stress_mult=None)
+    assert np.all(f[:252] == 1.0)
+    assert abs(np.median(f[252:]) - 1.0) < 0.1
+
+
+def test_benchmark_sizing_leans_against_volatility(rng):
+    """Calm, storm, calm again: v2 holds less than the benchmark in the storm and more than
+    it once calm returns, because its target is the long-run risk, not today's."""
+    r = np.concatenate([rng.normal(0, 0.006, 2000), rng.normal(0, 0.02, 2000),
+                        rng.normal(0, 0.006, 1000)])
+    f = capped_growth_leverage(r, np.zeros(5000), target="benchmark", warmup_f=1.0, stress_mult=None)
+    assert np.median(f[2300:4000]) < 1.0 < np.median(f[4200:5000])
+
+
+def test_unknown_target_is_rejected():
+    with pytest.raises(ValueError):
+        capped_growth_leverage(np.zeros(300), np.zeros(300), target="momentum")
+
+
+def test_fixed_leverage_sits_at_its_level_or_at_the_cap(rng):
+    """v3 holds fixed_f whenever the cap allows it and exactly the cap otherwise."""
+    r = rng.standard_t(3, 3000) * 0.01 + 3e-4
+    f = capped_growth_leverage(r, np.zeros(3000), target="fixed", fixed_f=1.5, warmup_f=1.0,
+                               band_abs=0.0, band_rel=0.0)
+    worst = np.concatenate([[0.0], np.maximum.accumulate(-r)[:-1]])
+    cap = np.where(worst > 0, 0.5 / (2 * np.where(worst > 0, worst, 1)), 10.0)
+    assert np.allclose(f[252:], np.minimum(1.5, cap[252:]))
+
+
+def test_drift_costs_hit_leverage_and_spare_buy_and_hold(rng):
+    """With drift accounting, f = 1 pays only to enter; a constant 2x pays to stay levered,
+    exactly the trade back from its drifted weight."""
+    r, rf = rng.normal(3e-4, 0.01, 1000), np.full(1000, 1e-4)
+    one = np.ones(1000)
+    assert np.allclose(financed_returns(one, r, rf, drift=True), financed_returns(one, r, rf))
+    two = np.full(1000, 2.0)
+    assert financed_returns(two, r, rf, drift=True).sum() < financed_returns(two, r, rf).sum()
+    p = financed_returns(np.array([2.0, 2.0]), np.array([0.1, 0.0]), 0.0, spread=0.0,
+                         cost=0.001, f_prev0=2.0, drift=True)
+    assert np.isclose(p[1], -0.001 * abs(2.0 - 2.0 * 1.1 / 1.2))
+
